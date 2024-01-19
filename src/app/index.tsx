@@ -1,11 +1,24 @@
 import { StyleSheet, Text, View } from "react-native";
+import Auth from 'src/components/auth';
+import { useAuthStore } from "store/authStore";
 
 export default function Page() {
+
+  const { isAuthenticated } = useAuthStore();
+
   return (
     <View style={styles.container}>
       <View style={styles.main}>
-        <Text style={styles.title}>Home</Text>
-        <Text style={styles.subtitle}>Modify app/index.tsx</Text>
+        {isAuthenticated ?
+          <>
+            <Text style={styles.title}>Home</Text>
+            <Text style={styles.subtitle}>Modify app/index.tsx</Text>
+          </>
+          :
+          <>
+            <Auth />
+          </>
+        }
       </View>
     </View>
   );

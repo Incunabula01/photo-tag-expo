@@ -1,13 +1,16 @@
-import { Icon } from "@/components/icon";
+import { Icon, IconName } from "@/components/icon";
 import { makeIcon, TabBarIcon } from "@/components/tab-bar-icon";
 import { TabbedNavigator } from "@/components/tab-slot";
 import cssStyles from "@/styles/root-layout.module.scss";
 import { Pressable, StyleSheet } from "@bacons/react-views";
-import { Link } from "expo-router";
-import React from "react";
+import { Href, Link } from "expo-router";
+import React, { ReactElement, ReactNode, useRef, useState } from "react";
 import {
+  Animated,
+  Easing,
   Platform,
   Text,
+  TouchableWithoutFeedback,
   useWindowDimensions,
   View,
   ViewStyle,
@@ -32,12 +35,12 @@ function HeaderLogo() {
         Platform.select({
           default: isSmallHorizontal &&
             !isLargeHorizontal && {
-              paddingTop: 0,
-              minHeight: 96,
-              marginTop: 12,
-              paddingBottom: 23,
-              height: 96,
-            },
+            paddingTop: 0,
+            minHeight: 96,
+            marginTop: 12,
+            paddingBottom: 23,
+            height: 96,
+          },
           web: cns(cssStyles.headerLink),
         }),
       ]}
@@ -116,18 +119,17 @@ function SideBar({ visible }) {
           ...Platform.select({
             default: [
               isLarge &&
-                ({
-                  width: NAV_MEDIUM_WIDTH,
-                  minWidth: NAV_MEDIUM_WIDTH,
-                  alignItems: "flex-start",
-                } as const),
+              ({
+                width: NAV_MEDIUM_WIDTH,
+                minWidth: NAV_MEDIUM_WIDTH,
+                alignItems: "flex-start",
+              } as const),
             ],
             web: [cns(cssStyles.sideBarInner)],
           }),
         ]}
       >
         <View
-          zIndex={3}
           style={[
             jsStyles.sidebarInner2,
             Platform.select({
@@ -136,15 +138,18 @@ function SideBar({ visible }) {
               },
               web: cns(cssStyles.sideBarHeader),
             }),
+            {
+              zIndex: 3
+            }
           ]}
         >
           <HeaderLogo />
 
           <View style={{ gap: 4, flex: 1 }}>
-            <SideBarTabItem name="index" icon={makeIcon("home")}>
+            <SideBarTabItem name="/index" icon={makeIcon("home")}>
               Home
             </SideBarTabItem>
-            <SideBarTabItem name="explore" icon={makeIcon("explore")}>
+            <SideBarTabItem name="/explore" icon={makeIcon("explore")}>
               Explore
             </SideBarTabItem>
             {/* Divider */}
@@ -177,30 +182,24 @@ function TabBar({ visible }) {
     >
       <View style={jsStyles.nav}>
         {[
-          { name: "index", id: "index", icon: "home" },
-          { name: "explore", id: "explore", icon: "explore" },
-          { name: "/more", id: "more", icon: "more" },
+          { name: 'index', id: "index", icon: "home" },
+          { name: 'explore', id: "explore", icon: "explore" },
+          { name: '/more', id: "more", icon: "more" },
         ].map((tab, i) => (
-          <TabBarItem key={i} name={tab.name} id={tab.id}>
-            {({ focused, pressed, hovered }) => (
+          <TabBarItem key={i} name={tab.name as Href<string>} id={tab.id}>
+            {({ focused, pressed }) => (
               <TabBarIcon
                 color="black"
                 style={[
                   {
                     paddingHorizontal: 8,
                   },
-                  Platform.select({
-                    web: {
-                      transitionDuration: "100ms",
-                      transform: hovered ? [{ scale: 1.1 }] : [{ scale: 1 }],
-                    },
-                  }),
                   pressed && {
                     transform: [{ scale: 0.9 }],
                     opacity: 0.8,
                   },
                 ]}
-                name={tab.icon}
+                name={tab.icon as IconName}
                 focused={focused}
               />
             )}
@@ -224,26 +223,27 @@ function TabBarItem({
   children,
   name,
   style,
-  id,
+  id
 }: {
   children?: any;
-  name: string;
+  name: Href<string>;
   style?: ViewStyle;
   id: string;
 }) {
   const focused = useIsTabSelected(id);
+  const nameString = name.toString();
 
-  if (name.startsWith("/") || name.startsWith(".")) {
+  if (nameString.startsWith("/") || nameString.startsWith(".")) {
     return (
       <Link href={name} asChild style={style}>
-        <Pressable>{(props) => children({ ...props, focused })}</Pressable>
+        <Pressable>{typeof children === 'function' ? (props) => children({ ...props, focused }) : children}</Pressable>
       </Link>
     );
   }
 
   return (
     <TabbedNavigator.Link name={id} asChild style={style}>
-      <Pressable>{(props) => children({ ...props, focused })}</Pressable>
+      <Pressable>{typeof children === 'function' ? (props) => children({ ...props, focused }) : children}</Pressable>
     </TabbedNavigator.Link>
   );
 }
@@ -255,55 +255,98 @@ function SideBarTabItem({
 }: {
   children: string;
   icon: (props: { focused?: boolean; color: string }) => JSX.Element;
-  name: string;
+  name: Href<string>;
 }) {
   const isLarge = useWidth(1265);
+  const [scaleValue] = useState(new Animated.Value(1));
+  const [fontWeightAnim] = useState(new Animated.Value(400));
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.8,
+      useNativeDriver: true,
+    }).start();
+
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 200,
+      easing: () => Easing.cubic(0.17),
+      useNativeDriver: false,
+    }).start();
+
+    Animated.timing(fontWeightAnim, {
+      toValue: 700,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      friction: 3,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 200,
+      easing: () => Easing.cubic(0.17),
+      useNativeDriver: false,
+    }).start();
+
+    Animated.timing(fontWeightAnim, {
+      toValue: 400,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  };
 
   return (
     <TabBarItem
       name={name}
-      id={name}
-      accessibilityHasPopup="menu"
+      id={name.toString()}
       style={{
         paddingVertical: 4,
         width: "100%",
       }}
     >
-      {({ focused, hovered }) => (
-        <View
+      <TouchableWithoutFeedback onPressIn={handlePressIn} onPressOut={handlePressOut}>
+        <Animated.View
           style={[
             {
               padding: 12,
               flexDirection: "row",
               alignItems: "center",
               borderRadius: 999,
-              transitionProperty: ["background-color", "box-shadow"],
-              transitionDuration: "200ms",
             },
-            hovered && {
+            {
+              opacity: fadeAnim,
               backgroundColor: "rgba(0, 0, 0, 0.1)",
-            },
+              shadowColor: '#000',
+              shadowOffset: {
+                width: 0,
+                height: 2,
+              },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+              elevation: 5,
+            }
           ]}
         >
-          <View
-            style={[
-              {
-                transitionTimingFunction: "cubic-bezier(0.17, 0.17, 0, 1)",
-                transitionProperty: ["transform"],
-                transitionDuration: "150ms",
-              },
-              hovered && {
-                transform: [{ scale: 1.1 }],
-              },
-            ]}
+          <Animated.View
+            style={{ transform: [{ scale: scaleValue }] }}
           >
             {icon({
-              focused,
+              focused: true,
               color: "#000",
             })}
-          </View>
+          </Animated.View>
 
-          <Text
+          <Animated.Text
             style={[
               {
                 color: "#000",
@@ -311,22 +354,24 @@ function SideBarTabItem({
                 marginLeft: 16,
                 marginRight: 16,
                 lineHeight: 24,
+                fontWeight: fontWeightAnim
               },
               Platform.select({
                 default: {
                   display: isLarge ? "flex" : "none",
                 },
                 web: cns(cssStyles.sideBarTabItemText),
-              }),
-              focused && {
-                fontWeight: "bold",
-              },
+              })
+
             ]}
           >
             {children}
-          </Text>
-        </View>
-      )}
+          </Animated.Text>
+        </Animated.View>
+
+      </TouchableWithoutFeedback>
+
+
     </TabBarItem>
   );
 }

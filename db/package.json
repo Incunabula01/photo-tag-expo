@@ -1,0 +1,41 @@
+{
+  "name": "@photo-tag-app/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules",
+    "lint": "eslint .",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "push": "drizzle-kit push:mysql",
+    "studio": "drizzle-kit studio",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@esbuild/darwin-arm64": "^0.19.11",
+    "@planetscale/database": "^1.13.0",
+    "drizzle-orm": "^0.29.3",
+    "mysql2": "^3.6.5"
+  },
+  "devDependencies": {
+    "@photo-tag-app/eslint-config": "workspace:^0.2.0",
+    "@photo-tag-app/prettier-config": "workspace:^0.1.0",
+    "@photo-tag-app/tsconfig": "workspace:^0.1.0",
+    "dotenv-cli": "^7.3.0",
+    "drizzle-kit": "^0.20.10",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3"
+  },
+  "eslintConfig": {
+    "root": true,
+    "extends": [
+      "@photo-tag-app/eslint-config/base"
+    ]
+  },
+  "prettier": "@photo-tag-app/prettier-config"
+}

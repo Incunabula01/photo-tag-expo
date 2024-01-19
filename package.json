@@ -6,16 +6,26 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build": "expo export -p web",
-    "deploy": "vercel build && vercel deploy --prebuilt"
+    "deploy": "vercel build && vercel deploy --prebuilt",
+    "db-push": "drizzle-kit push:mysql",
+    "db-studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@planetscale/database": "^1.13.0",
     "@types/react": "~18.0.27",
+    "dotenv-cli": "^7.3.0",
+    "drizzle-kit": "^0.20.13",
+    "drizzle-orm": "^0.29.3",
+    "eslint": "^8.56.0",
     "expo": "^49.0.0-beta.4",
     "expo-constants": "~14.2.1",
+    "expo-facebook": "^12.2.0",
     "expo-linking": "~4.0.1",
     "expo-router": "2.0.0-rc.10",
     "expo-splash-screen": "~0.18.2",
     "expo-status-bar": "~1.4.4",
+    "mysql2": "^3.7.1",
+    "prettier": "^3.2.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.71.8",
@@ -27,7 +37,8 @@
     "react-native-svg-transformer": "^1.0.0",
     "react-native-web": "~0.18.7",
     "sass": "^1.62.1",
-    "typescript": "^4.9.4"
+    "typescript": "^4.9.4",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
     "@babel/core": "^7.19.3",

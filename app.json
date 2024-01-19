@@ -11,6 +11,8 @@
     "experiments": {
       "tsconfigPaths": true,
       "typedRoutes": true
-    }
+    },
+    "facebookAppId": "211606552021460",
+    "facebookDisplayName": "Photo Tag"
   }
 }
